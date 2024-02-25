@@ -1,0 +1,44 @@
+#load in data
+import pandas as pd
+
+url = 'https://gist.github.com/rhema/3b4b729d98978b9020d85c9b9e7c9dd6/raw/e0831e96129b2a0af0c696efe132cb8503c1e631/NormalWaterFlyingPokemon.csv'
+all_data = pd.read_csv(url)
+
+train_data = all_data.iloc[:275,:]
+test_data = all_data.iloc[275:,:]
+print(len(test_data))
+
+def PX(Typ):
+  c = (train_data["Type"] == Typ).sum()
+  P = c/len(train_data)
+  return P
+
+def PYX(Fetr, Fetr_j, Typ):
+  c = 0
+  n = 0
+  for i, r in train_data.iterrows():
+    if r['Type'] == Typ:
+      c +=1
+      if r[Fetr] == Fetr_j:
+        n += 1
+  return n/c
+
+
+def predict(row):
+  T = ["Normal", "Water", "Flying"]
+  PF = []
+  for Typ in T:
+    probability = PYX('HP', row[1], Typ)
+    probability *= PYX('Attack', row[2], Typ)
+    probability *= PYX('Defense', row[3], Typ)
+    probability *= PX(Typ)
+    PF.append(probability)
+  PFF = max(PF) / sum(PF)
+  max_index = PF.index(max(PF))
+
+  return {"score":PFF,"class":T[max_index]}
+
+
+for row in test_data.iterrows():
+  print(print(row[1]["Name"]), print(predict(row[1])))
+  # break
